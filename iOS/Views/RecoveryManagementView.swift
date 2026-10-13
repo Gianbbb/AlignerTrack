@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public struct RecoveryManagementView: View {
     @ObservedObject var dataManager: AlignerDataManager

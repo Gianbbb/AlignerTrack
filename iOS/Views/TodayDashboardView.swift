@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public struct TodayDashboardView: View {
     @ObservedObject var dataManager: AlignerDataManager

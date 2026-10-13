@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public struct StatsView: View {
     @ObservedObject var dataManager: AlignerDataManager

@@ -4,13 +4,6 @@ options:
   deploymentTarget:
     iOS: 17.0
 
-schemes:
-  AlignerTrack:
-    build:
-      targets:
-        AlignerTrack: all
-        AlignerWidgetExtension: all
-
 targets:
   AlignerTrack:
     type: application
@@ -43,6 +36,8 @@ targets:
       - path: iOS/Models
       - path: iOS/Services
       - path: iOS/Widget
+        excludes:
+          - Info.plist
     info:
       path: iOS/Widget/Info.plist
     entitlements:

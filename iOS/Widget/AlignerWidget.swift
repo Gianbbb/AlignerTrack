@@ -1,6 +1,7 @@
 import WidgetKit
 import SwiftUI
 import AppIntents
+import UIKit
 
 // MARK: - Timeline Entry
 public struct AlignerEntry: TimelineEntry {

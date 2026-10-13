@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public struct CycleHistoryView: View {
     @ObservedObject var dataManager: AlignerDataManager
