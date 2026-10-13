@@ -3,6 +3,8 @@ options:
   bundleIdPrefix: com.alignertrack
   deploymentTarget:
     iOS: 17.0
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
 
 targets:
   AlignerTrack:
@@ -21,10 +23,11 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alignertrack.app
-        SWIFT_VERSION: '5.9'
+        SWIFT_VERSION: "5.9"
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
+        IPHONEOS_DEPLOYMENT_TARGET: 17.0
     dependencies:
       - target: AlignerWidgetExtension
 
@@ -43,7 +46,19 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alignertrack.app.widget
-        SWIFT_VERSION: '5.9'
+        SWIFT_VERSION: "5.9"
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
+        IPHONEOS_DEPLOYMENT_TARGET: 17.0
+
+schemes:
+  AlignerTrack:
+    build:
+      targets:
+        AlignerTrack: all
+        AlignerWidgetExtension: all
+    run:
+      config: Release
+    archive:
+      config: Release

@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: macos-14
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - name: Checkout Repository
@@ -23,6 +23,9 @@ jobs:
       - name: Genera Progetto Xcode
         run: xcodegen generate
 
+      - name: Lista Scheme Disponibili
+        run: xcodebuild -project AlignerTrack.xcodeproj -list
+
       - name: Compila App e Widget (.app)
         run: |
           xcodebuild build \
@@ -33,7 +36,8 @@ jobs:
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_IDENTITY="" \
+            2>&1 | tail -100
 
       - name: Crea Pacchetto .IPA
         run: |

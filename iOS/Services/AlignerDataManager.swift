@@ -1,6 +1,8 @@
 import Foundation
 import Combine
+#if canImport(WidgetKit)
 import WidgetKit
+#endif
 
 @MainActor
 public class AlignerDataManager: ObservableObject {
@@ -77,7 +79,9 @@ public class AlignerDataManager: ObservableObject {
         }
 
         // Trigger widget reload
+        #if canImport(WidgetKit)
         WidgetCenter.shared.reloadAllTimelines()
+        #endif
     }
 
     private func saveCycles() {
@@ -143,7 +147,9 @@ public class AlignerDataManager: ObservableObject {
         if let index = cycles.firstIndex(where: { $0.id == cycleId }) {
             cycles[index].recoveryDays = max(0, days)
             saveCycles()
+            #if canImport(WidgetKit)
             WidgetCenter.shared.reloadAllTimelines()
+            #endif
         }
     }
 
