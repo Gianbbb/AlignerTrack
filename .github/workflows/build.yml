@@ -21,9 +21,7 @@ jobs:
         run: brew install xcodegen
 
       - name: Genera Progetto Xcode
-        run: |
-          xcodegen generate
-          xcodebuild -list -project AlignerTrack.xcodeproj
+        run: xcodegen generate
 
       - name: Compila App e Widget (.app)
         run: |

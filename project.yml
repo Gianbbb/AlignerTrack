@@ -36,10 +36,8 @@ targets:
       - path: iOS/Models
       - path: iOS/Services
       - path: iOS/Widget
-        excludes:
-          - Info.plist
     info:
-      path: iOS/Widget/Info.plist
+      path: iOS/WidgetInfo.plist
     entitlements:
       path: iOS/AlignerWidget.entitlements
     settings:
