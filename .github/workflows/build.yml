@@ -1,0 +1,54 @@
+name: Build iOS IPA & Widget
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Seleziona Versione Xcode
+        run: |
+          sudo xcode-select -s /Applications/Xcode_15.4.app || sudo xcode-select -s /Applications/Xcode.app
+          xcodebuild -version
+
+      - name: Installa XcodeGen
+        run: |
+          brew install xcodegen
+
+      - name: Genera Progetto Xcode
+        run: |
+          xcodegen generate
+
+      - name: Compila & Archivia Applicazione + Widget
+        run: |
+          xcodebuild archive \
+            -project AlignerTrack.xcodeproj \
+            -scheme AlignerTrack \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/AlignerTrack.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            AD_HOC_CODE_SIGNING_ALLOWED=YES
+
+      - name: Crea Pacchetto .IPA
+        run: |
+          mkdir -p build/Payload
+          cp -r build/AlignerTrack.xcarchive/Products/Applications/AlignerTrack.app build/Payload/
+          cd build && zip -r -9 AlignerTrack.ipa Payload
+
+      - name: Carica file .IPA negli Artifacts di GitHub
+        uses: actions/upload-artifact@v4
+        with:
+          name: AlignerTrack-iOS
+          path: build/AlignerTrack.ipa
+          retention-days: 7

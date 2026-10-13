@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlignerTrack - Simulatore App & Widget iOS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #00A896;
+      --primary-light: #E0F7F4;
+      --warning: #F77F00;
+      --warning-light: #FFF0E0;
+      --danger: #E63946;
+      --success: #02C39A;
+      --bg-dark: #0F172A;
+      --card-bg: #FFFFFF;
+      --text-main: #1E293B;
+      --text-sub: #64748B;
+      --border: #E2E8F0;
+      --c1: #00A896;
+      --c2: #7209B7;
+      --c3: #F72585;
+      --c4: #4361EE;
+      --c5: #F77F00;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0b0f19 0%, #17223b 50%, #0d1527 100%);
+      color: #F8FAFC;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 60px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+      max-width: 800px;
+    }
+
+    header h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #02C39A, #48CAE4);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+
+    header p {
+      color: #94A3B8;
+      font-size: 14px;
+    }
+
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      background: rgba(2, 195, 154, 0.15);
+      border: 1px solid rgba(2, 195, 154, 0.3);
+      border-radius: 999px;
+      color: #02C39A;
+      font-size: 12px;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    /* Container a 2 colonne: Widget Preview a Sinistra, App a Destra */
+    .simulator-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 32px;
+      width: 100%;
+      max-width: 1100px;
+    }
+
+    /* PHONE SHELL */
+    .phone-mockup {
+      width: 390px;
+      height: 800px;
+      background: #F1F5F9;
+      border-radius: 50px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 10px #1E293B, 0 0 0 12px #334155;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-main);
+    }
+
+    /* Dynamic Island */
+    .notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 28px;
+      background: #000;
+      border-radius: 20px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+    .notch-camera {
+      width: 10px;
+      height: 10px;
+      background: #0a0a14;
+      border-radius: 50%;
+      border: 1px solid #1a1a2e;
+    }
+
+    .status-bar {
+      height: 48px;
+      padding: 14px 24px 0;
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1E293B;
+      z-index: 90;
+    }
+
+    .home-screen-mode .status-bar {
+      color: #FFFFFF;
+    }
+
+    /* WIDGET PREVIEW COLUMN */
+    .widget-column {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #CBD5E1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* iOS Home Screen Mockup */
+    .ios-home-screen {
+      width: 390px;
+      height: 700px;
+      background: linear-gradient(180deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%);
+      border-radius: 40px;
+      box-shadow: 0 20px 45px rgba(0,0,0,0.5), 0 0 0 8px #1e293b;
+      padding: 50px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .home-clock {
+      font-size: 54px;
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+      margin-top: 10px;
+      margin-bottom: 24px;
+      letter-spacing: -1px;
+    }
+
+    /* WIDGET BOX - systemSmall */
+    .widget-card {
+      width: 160px;
+      height: 160px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(25px);
+      border-radius: 28px;
+      padding: 13px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .widget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .widget-cycle-tag {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+    }
+
+    .widget-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--c1);
+    }
+
+    .widget-status-badge {
+      font-size: 9px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .status-badge-worn {
+      background: rgba(2, 195, 154, 0.18);
+      color: #029474;
+    }
+
+    .status-badge-off {
+      background: rgba(247, 127, 0, 0.18);
+      color: #C05621;
+      animation: pulseAlert 1.5s infinite;
+    }
+
+    @keyframes pulseAlert {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .widget-body {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+    }
+
+    .widget-label {
+      font-size: 9px;
+      font-weight: 800;
+      color: #94A3B8;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .widget-timer-val {
+      font-size: 21px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      letter-spacing: -0.5px;
+      color: #1E293B;
+      line-height: 1.15;
+    }
+
+    .widget-timer-val.off {
+      color: #EA580C;
+    }
+
+    .widget-subtext {
+      font-size: 9px;
+      font-weight: 600;
+      color: #64748B;
+    }
+
+    /* THE WIDGET BUTTON: TOLTO / RIMESSO */
+    .widget-btn {
+      width: 100%;
+      padding: 7px 0;
+      border-radius: 12px;
+      border: none;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .widget-btn:active {
+      transform: scale(0.96);
+    }
+
+    .widget-btn.btn-tolto {
+      background: linear-gradient(135deg, #F97316, #DC2626);
+      color: white;
+    }
+
+    .widget-btn.btn-rimesso {
+      background: linear-gradient(135deg, #02C39A, #00A896);
+      color: white;
+    }
+
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 32px;
+      width: 100%;
+      padding: 0 10px;
+    }
+
+    .dummy-app-icon {
+      width: 58px;
+      height: 58px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.25);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+
+    /* APP SCREEN INSIDE PHONE MOCKUP */
+    .app-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #F8FAFC;
+    }
+
+    .app-header {
+      padding: 10px 20px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .app-header h2 {
+      font-size: 22px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+
+    .app-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 10px 16px 20px;
+      scrollbar-width: none;
+    }
+    .app-content::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* BOTTOM TAB BAR */
+    .tab-bar {
+      height: 72px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid #E2E8F0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 12px;
+      padding-top: 6px;
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      color: #94A3B8;
+      font-size: 10px;
+      font-weight: 700;
+      transition: all 0.2s;
+    }
+
+    .tab-item.active {
+      color: var(--primary);
+    }
+
+    .tab-item svg {
+      width: 22px;
+      height: 22px;
+      stroke-width: 2.2;
+    }
+
+    /* CARD STYLES */
+    .card {
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+      border: 1px solid #F1F5F9;
+    }
+
+    /* ACTIVE CYCLE BANNER */
+    .cycle-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      background: #FFFFFF;
+      margin-bottom: 14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+      cursor: pointer;
+    }
+    .cycle-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--c1);
+      box-shadow: 0 0 10px var(--c1);
+    }
+
+    /* HERO STATUS CARD */
+    .hero-card {
+      text-align: center;
+      padding: 20px 16px;
+    }
+
+    .hero-state-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+
+    /* PROGRESS RING */
+    .ring-wrapper {
+      position: relative;
+      width: 170px;
+      height: 170px;
+      margin: 0 auto 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-svg {
+      transform: rotate(-90deg);
+      width: 170px;
+      height: 170px;
+    }
+
+    .ring-bg {
+      fill: none;
+      stroke: #E2E8F0;
+      stroke-width: 14;
+    }
+
+    .ring-progress {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 14;
+      stroke-linecap: round;
+      stroke-dasharray: 440;
+      stroke-dashoffset: 60;
+      transition: stroke-dashoffset 0.8s ease, stroke 0.3s ease;
+    }
+
+    .ring-inner {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring-val {
+      font-size: 26px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #0F172A;
+    }
+
+    .ring-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748B;
+    }
+
+    /* BIG ACTION BUTTON */
+    .btn-big-toggle {
+      width: 100%;
+      padding: 16px;
+      border-radius: 18px;
+      border: none;
+      color: white;
+      font-size: 17px;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+    .btn-big-toggle:active {
+      transform: scale(0.98);
+    }
+
+    /* STATS ROW */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .stat-mini-card {
+      background: #FFFFFF;
+      padding: 12px 10px;
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+    }
+
+    .stat-mini-val {
+      font-size: 16px;
+      font-weight: 800;
+      color: #0F172A;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-mini-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748B;
+      margin-top: 2px;
+    }
+
+    /* CALENDAR GRID */
+    .cal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .cal-weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 10px;
+      font-weight: 800;
+      color: #94A3B8;
+      margin-bottom: 6px;
+    }
+
+    .cal-days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .cal-cell {
+      height: 48px;
+      border-radius: 10px;
+      padding: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.15s;
+    }
+
+    .cal-cell:hover, .cal-cell.selected {
+      border-color: #0F172A;
+      box-shadow: 0 0 0 1.5px #0F172A;
+    }
+
+    .cal-day-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: #1E293B;
+    }
+
+    .cal-cycle-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      position: absolute;
+      top: 5px;
+      right: 5px;
+    }
+
+    .cal-badge-text {
+      font-size: 7.5px;
+      font-weight: 800;
+      line-height: 1;
+      padding: 1px 2px;
+      border-radius: 3px;
+    }
+
+    /* RECOVERY SECTION */
+    .stepper-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 18px;
+      background: #F8FAFC;
+      border-radius: 16px;
+      margin: 14px 0;
+    }
+
+    .btn-step {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: none;
+      background: var(--primary);
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .btn-step:active {
+      transform: scale(0.9);
+    }
+
+    .step-number {
+      font-size: 30px;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: #0F172A;
+    }
+
+    /* SESSIONS LIST */
+    .session-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: #F8FAFC;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    /* INSTRUCTIONS FOOTER */
+    .setup-instructions {
+      max-width: 900px;
+      margin-top: 36px;
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 24px;
+      color: #CBD5E1;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .setup-instructions h3 {
+      color: #38BDF8;
+      font-size: 17px;
+      margin-bottom: 10px;
+    }
+
+    .code-pill {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 2px 8px;
+      border-radius: 6px;
+      color: #A7F3D0;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🦷 AlignerTrack - Monitor Mascherine</h1>
+    <p>Simulatore interattivo completo: Widget Piccolo iOS 17 & App AlignerTrack</p>
+    <div class="badge-pill">
+      <span>● Obiettivo: 22h / 24h</span>
+      <span>• Ciclo: 14 Giorni</span>
+      <span>• Gestione Recupero Dinamica</span>
+    </div>
+  </header>
+
+  <div class="simulator-container">
+
+    <!-- COLONNA 1: WIDGET PREVIEW SU HOME SCREEN iOS -->
+    <div class="widget-column">
+      <div class="section-title">
+        <span>📱 Schermata Home iOS (Widget Piccolo)</span>
+      </div>
+
+      <div class="ios-home-screen">
+        <div class="home-clock" id="homeClock">12:45</div>
+
+        <!-- IL WIDGET RICHIESTO DALL'UTENTE -->
+        <div class="widget-card" id="smallWidget">
+          <!-- Header: Ciclo e Stato -->
+          <div class="widget-header">
+            <div class="widget-cycle-tag">
+              <span class="widget-dot" id="widgetCycleDot"></span>
+              <span id="widgetCycleText">M#1</span>
+            </div>
+            <div class="widget-status-badge status-badge-worn" id="widgetStatusBadge">INDOSSATO</div>
+          </div>
+
+          <!-- Body: Timer / Info Live -->
+          <div class="widget-body">
+            <div class="widget-label" id="widgetBodyLabel">OGGI PORTATO</div>
+            <div class="widget-timer-val" id="widgetTimerVal">20h 15m</div>
+            <div class="widget-subtext" id="widgetSubtext">Pausa rimasta: 45m</div>
+          </div>
+
+          <!-- Pulsante Alternante Interattivo: "TOLTO" / "RIMESSO" -->
+          <button class="widget-btn btn-tolto" id="widgetActionBtn" onclick="toggleAlignerState()">
+            <span id="widgetBtnIcon">⏸</span>
+            <span id="widgetBtnText">Tolto</span>
+          </button>
+        </div>
+
+        <!-- Icone simulate della Home -->
+        <div class="home-grid">
+          <div class="dummy-app-icon" onclick="switchAppTab('today')">🦷</div>
+          <div class="dummy-app-icon" onclick="switchAppTab('calendar')">📅</div>
+          <div class="dummy-app-icon" onclick="switchAppTab('recovery')">🩹</div>
+          <div class="dummy-app-icon" onclick="switchAppTab('stats')">📊</div>
+        </div>
+      </div>
+      <p style="font-size: 12px; color: #94A3B8; text-align: center;">
+        👆 <b>Premi il pulsante sul widget</b>: si alterna istantaneamente tra <i>"Tolto"</i> e <i>"Rimesso"</i> e fa partire il timer live!
+      </p>
+    </div>
+
+
+    <!-- COLONNA 2: APPLICAZIONE COMPLETA -->
+    <div class="widget-column">
+      <div class="section-title">
+        <span>📲 App AlignerTrack (Vista iPhone)</span>
+      </div>
+
+      <div class="phone-mockup">
+        <!-- Dynamic Island -->
+        <div class="notch">
+          <div class="notch-camera"></div>
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: #00A896;"></div>
+        </div>
+
+        <div class="status-bar">
+          <span id="phoneClock">12:45</span>
+          <span>5G  🔋 98%</span>
+        </div>
+
+        <!-- APP SCREENS -->
+        <div class="app-screen">
+
+          <!-- SCHERMATA 1: OGGI (DASHBOARD) -->
+          <div id="screen-today" class="app-content">
+            <div class="app-header">
+              <h2>Oggi</h2>
+              <span id="todayDateStr" style="font-size: 13px; font-weight: 700; color: #64748B;">14 Ottobre</span>
+            </div>
+
+            <!-- Banner Ciclo Attivo -->
+            <div class="cycle-banner" onclick="switchAppTab('recovery')">
+              <div class="cycle-dot" id="bannerCycleDot"></div>
+              <div style="flex: 1;">
+                <div style="font-size: 14px; font-weight: 800;" id="bannerCycleTitle">Mascherina #1 (14 giorni)</div>
+                <div style="font-size: 11px; color: #64748B;" id="bannerCycleSub">Giorno 6 di 14 • Cambio il 22 Ottobre</div>
+              </div>
+              <span style="font-size: 16px; color: #94A3B8;">›</span>
+            </div>
+
+            <!-- Hero Status Card -->
+            <div class="card hero-card">
+              <div class="hero-state-pill" id="appHeroPill" style="background: rgba(2, 195, 154, 0.15); color: #029474;">
+                <span id="appHeroDot">●</span>
+                <span id="appHeroStateText">APPARECCHIO INDOSSATO</span>
+              </div>
+
+              <!-- Anello di Progresso -->
+              <div class="ring-wrapper">
+                <svg class="ring-svg" viewBox="0 0 170 170">
+                  <circle class="ring-bg" cx="85" cy="85" r="70"></circle>
+                  <circle class="ring-progress" id="ringProgressCircle" cx="85" cy="85" r="70"></circle>
+                </svg>
+                <div class="ring-inner">
+                  <div class="ring-val" id="ringMainTime">20h 15m</div>
+                  <div class="ring-sub" id="ringSubLabel">Portato oggi</div>
+                </div>
+              </div>
+
+              <!-- Grande Pulsante Alternante -->
+              <button class="btn-big-toggle" id="appBigToggleBtn" onclick="toggleAlignerState()" style="background: linear-gradient(135deg, #F97316, #DC2626);">
+                <span id="appBigBtnIcon">⏸</span>
+                <span id="appBigBtnText">Tolto</span>
+              </button>
+            </div>
+
+            <!-- Statistiche rapide -->
+            <div class="stats-row">
+              <div class="stat-mini-card">
+                <div class="stat-mini-val" id="statTodayRemoved">1h 15m</div>
+                <div class="stat-mini-lbl">Tempo Tolto</div>
+              </div>
+              <div class="stat-mini-card">
+                <div class="stat-mini-val" id="statTodayPauseLeft" style="color: #02C39A;">45m</div>
+                <div class="stat-mini-lbl">Pausa Libera</div>
+              </div>
+              <div class="stat-mini-card">
+                <div class="stat-mini-val" id="statTodaySessions">3</div>
+                <div class="stat-mini-lbl">Pasti/Pause</div>
+              </div>
+            </div>
+
+            <!-- Lista Pause Odierne -->
+            <div class="card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <span style="font-size: 14px; font-weight: 800;">Dettaglio Pause di Oggi</span>
+                <div style="display: flex; gap: 6px;">
+                  <button onclick="addQuickTestSeconds(20)" style="border: none; background: rgba(0, 168, 150, 0.12); color: var(--primary); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; cursor: pointer;">+ 20s Test</button>
+                  <button onclick="addQuickTestSeconds(15 * 60)" style="border: none; background: #F1F5F9; color: #475569; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; cursor: pointer;">+ 15m Caffè</button>
+                </div>
+              </div>
+              <div id="todaySessionsList">
+                <!-- Sessioni inserite dinamicamente -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SCHERMATA 2: CALENDARIO COLORATO PER CICLO -->
+          <div id="screen-calendar" class="app-content" style="display: none;">
+            <div class="app-header">
+              <h2>Calendario Cicli</h2>
+              <span style="font-size: 12px; font-weight: 700; color: #64748B;">Ottobre 2026</span>
+            </div>
+
+            <!-- Griglia Calendario -->
+            <div class="card">
+              <div class="cal-header">
+                <button onclick="prevMonth()" style="background:none; border:none; cursor:pointer; font-size:18px;">‹</button>
+                <span id="calMonthTitle" style="font-size: 15px; font-weight: 800;">Ottobre 2026</span>
+                <button onclick="nextMonth()" style="background:none; border:none; cursor:pointer; font-size:18px;">›</button>
+              </div>
+
+              <div class="cal-weekdays">
+                <span>LUN</span><span>MAR</span><span>MER</span><span>GIO</span><span>VEN</span><span>SAB</span><span>DOM</span>
+              </div>
+
+              <div class="cal-days-grid" id="calGrid">
+                <!-- Celle calendario generate dinamicamente con colori diversi per ciclo -->
+              </div>
+            </div>
+
+            <!-- Legenda Colori Cicli -->
+            <div class="card" style="padding: 12px;">
+              <div style="font-size: 12px; font-weight: 800; color: #64748B; margin-bottom: 8px;">LEGENDA MASCHERINE:</div>
+              <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="calLegend">
+                <!-- Legenda dinamica -->
+              </div>
+            </div>
+
+            <!-- Dettaglio Giorno Selezionato -->
+            <div class="card" id="calDayDetailCard">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <span style="font-size: 15px; font-weight: 800;" id="calDetailDate">14 Ottobre 2026</span>
+                <span class="badge-pill" id="calDetailCycleBadge" style="margin: 0;">Mascherina #1</span>
+              </div>
+              <div style="font-size: 13px; color: #475569; margin-bottom: 10px;" id="calDetailWearInfo">
+                Indossato: <b>22h 15m</b> (Target 22h Raggiunto ✅) • Tolto: <b>1h 45m</b>
+              </div>
+              <div style="background: #F1F5F9; border-radius: 10px; padding: 10px; font-size: 12px; color: #334155;" id="calDetailCycleDates">
+                🏁 Fine Ciclo M#1: <b>22 Ottobre</b><br>
+                🚀 Inizio Prossimo Ciclo M#2: <b>22 Ottobre</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- SCHERMATA 3: RECUPERO & START NUOVO CICLO -->
+          <div id="screen-recovery" class="app-content" style="display: none;">
+            <div class="app-header">
+              <h2>Recupero & Cicli</h2>
+            </div>
+
+            <!-- Box Suggerimento Intelligente Basato su Ore Saltate -->
+            <div class="card" style="border-left: 4px solid var(--warning);">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <span style="font-size: 18px;">💡</span>
+                <span style="font-size: 15px; font-weight: 800;">Suggerimento App Basato su Ore Perse</span>
+              </div>
+              <p style="font-size: 12px; color: #64748B; margin-bottom: 12px;">
+                Hai accumulato <b id="recoveryMissedHours" style="color: #EA580C;">28 ore saltate</b> rispetto all'obiettivo di 22h/giorno.
+              </p>
+              <div style="display: flex; justify-content: space-between; align-items: center; background: #FFF7ED; padding: 10px 14px; border-radius: 12px; margin-bottom: 10px;">
+                <div>
+                  <div style="font-size: 11px; font-weight: 700; color: #C2410C;">SUGGERIMENTO CALCOLATO:</div>
+                  <div style="font-size: 16px; font-weight: 800; color: #EA580C;" id="recSuggestedDaysText">+2 Giorni di Recupero</div>
+                </div>
+                <button onclick="applySuggestedRecovery()" style="padding: 6px 12px; border-radius: 8px; border: none; background: #EA580C; color: white; font-size: 12px; font-weight: 700; cursor: pointer;">
+                  Applica
+                </button>
+              </div>
+              <div style="font-size: 11px; color: #94A3B8;">
+                Formula: ore perse ÷ 22h efficacia ortodontica al giorno.
+              </div>
+            </div>
+
+            <!-- Regolazione Manuale Giorni di Recupero -->
+            <div class="card">
+              <span style="font-size: 15px; font-weight: 800;">Regola Giorni di Recupero</span>
+              <p style="font-size: 12px; color: #64748B; margin-top: 4px;">Scegli quanti giorni extra aggiungere a questo ciclo:</p>
+
+              <div class="stepper-box">
+                <button class="btn-step" onclick="changeRecoveryDays(-1)">-</button>
+                <div style="text-align: center;">
+                  <div class="step-number" id="stepperDaysVal">+1</div>
+                  <div style="font-size: 11px; font-weight: 700; color: #64748B;">Giorni aggiunti</div>
+                </div>
+                <button class="btn-step" onclick="changeRecoveryDays(1)">+</button>
+              </div>
+
+              <!-- Date Ricalcolate -->
+              <div style="background: #F8FAFC; border-radius: 12px; padding: 12px; font-size: 12px; line-height: 1.8;">
+                <div>📅 Inizio ciclo: <b id="recStartDate">8 Ottobre 2026</b></div>
+                <div>⏳ Durata nominale: <b>14 giorni</b></div>
+                <div style="color: #EA580C;">🩹 Giorni extra recupero: <b id="recExtraDaysLabel">+1 giorno</b></div>
+                <div style="border-top: 1px dashed #CBD5E1; margin: 4px 0;"></div>
+                <div style="color: var(--primary);">🏁 <b>Nuova Data Fine Ciclo:</b> <b id="recCalculatedEndDate">23 Ottobre 2026</b></div>
+                <div style="color: #4361EE;">🚀 <b>Inizio Ciclo Successivo:</b> <b id="recNextCycleDate">23 Ottobre 2026</b></div>
+              </div>
+            </div>
+
+            <!-- Pulsante START NUOVO CICLO -->
+            <button class="btn-big-toggle" onclick="startNewCycleModal()" style="background: linear-gradient(135deg, #02C39A, #4361EE); margin-bottom: 14px;">
+              <span>🚀 Start Nuovo Ciclo (Prossima Mascherina)</span>
+            </button>
+          </div>
+
+          <!-- SCHERMATA 4: STATISTICHE -->
+          <div id="screen-stats" class="app-content" style="display: none;">
+            <div class="app-header">
+              <h2>Statistiche</h2>
+            </div>
+
+            <div class="card">
+              <span style="font-size: 15px; font-weight: 800;">Medie Giornaliere (Ciclo 14gg)</span>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
+                <div style="background: #F0FDF4; padding: 10px; border-radius: 12px;">
+                  <div style="font-size: 18px; font-weight: 800; color: #16A34A;" id="statsAvgWorn">21.8h</div>
+                  <div style="font-size: 11px; font-weight: 700; color: #166534;">Media Indossato (Target 22h)</div>
+                </div>
+                <div style="background: #FFF7ED; padding: 10px; border-radius: 12px;">
+                  <div style="font-size: 18px; font-weight: 800; color: #EA580C;" id="statsAvgOff">2.2h</div>
+                  <div style="font-size: 11px; font-weight: 700; color: #9A3412;">Media Tolto (Max 2h)</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <span style="font-size: 15px; font-weight: 800;">Confronto Giornaliero (Ore)</span>
+              <div style="display: flex; align-items: flex-end; gap: 6px; height: 130px; margin-top: 16px; padding-bottom: 20px; border-bottom: 1px solid #E2E8F0;" id="statsChartBars">
+                <!-- Barre generate dinamicamente -->
+              </div>
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: #94A3B8; margin-top: 6px;">
+                <span>14 gg fa</span>
+                <span>Oggi</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SCHERMATA 5: STORICO -->
+          <div id="screen-history" class="app-content" style="display: none;">
+            <div class="app-header">
+              <h2>Storico Mascherine</h2>
+            </div>
+            <div id="historyCyclesList">
+              <!-- Cicli passati generati dinamicamente -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- TAB BAR BOTTOM -->
+        <div class="tab-bar">
+          <div class="tab-item active" id="tab-btn-today" onclick="switchAppTab('today')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Oggi</span>
+          </div>
+          <div class="tab-item" id="tab-btn-calendar" onclick="switchAppTab('calendar')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span>Calendario</span>
+          </div>
+          <div class="tab-item" id="tab-btn-recovery" onclick="switchAppTab('recovery')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            <span>Recupero</span>
+          </div>
+          <div class="tab-item" id="tab-btn-stats" onclick="switchAppTab('stats')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span>Statistiche</span>
+          </div>
+          <div class="tab-item" id="tab-btn-history" onclick="switchAppTab('history')">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"></path></svg>
+            <span>Storico</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SCRIPT DI LOGICA & INTERATTIVITÀ -->
+  <script>
+    // PALETTE COLORI CICLI
+    const CYCLE_COLORS = [
+      "#00A896", // Smeraldo menta
+      "#7209B7", // Viola Orchidea
+      "#F77F00", // Arancio Corallo
+      "#4361EE", // Blu Elettrico
+      "#F72585", // Rosa Magenta
+      "#06D6A0"  // Verde Acqua
+    ];
+
+    // STATO APPLICAZIONE (MISURATO SEMPRE IN SECONDI)
+    let appState = {
+      isRemoved: false,
+      removalStartTime: null, // timestamp quando tolto
+      todayRemovedSeconds: 45 * 60, // 45 minuti iniziali
+      currentCycleNumber: 1,
+      currentCycleStartDate: new Date(2026, 9, 8), // 8 Ottobre 2026
+      nominalDays: 14,
+      recoveryDays: 1, // giorni aggiunti manualmente o da suggerimento
+      todaySessions: [
+        { start: "08:15", end: "08:35", durationSec: 20 * 60, note: "Colazione" },
+        { start: "13:00", end: "13:25", durationSec: 25 * 60, note: "Pranzo" }
+      ],
+      // Cicli passati per lo storico
+      cycles: [
+        { number: 1, startDate: new Date(2026, 9, 8), recoveryDays: 1, color: "#00A896", completed: false }
+      ]
+    };
+
+    let timerInterval = null;
+
+    // INIZIALIZZAZIONE
+    function init() {
+      updateTimeClock();
+      setInterval(updateTimeClock, 1000);
+      renderAll();
+    }
+
+    function updateTimeClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      const timeStr = `${h}:${m}`;
+      
+      document.getElementById('homeClock').textContent = timeStr;
+      document.getElementById('phoneClock').textContent = timeStr;
+
+      // Se l'apparecchio è tolto, aggiorna il timer che scorre in tempo reale
+      if (appState.isRemoved && appState.removalStartTime) {
+        const diffMs = Date.now() - appState.removalStartTime;
+        const totalSec = Math.floor(diffMs / 1000);
+        const timerMinutes = Math.floor(totalSec / 60);
+        const timerSeconds = totalSec % 60;
+        const formattedTimer = `${String(timerMinutes).padStart(2, '0')}:${String(timerSeconds).padStart(2, '0')}`;
+        
+        // Aggiorna widget
+        document.getElementById('widgetTimerVal').textContent = formattedTimer;
+        // Aggiorna app ring
+        document.getElementById('ringMainTime').textContent = formattedTimer;
+      }
+    }
+
+    // ALTERNA STATO: TOLTO / RIMESSO (MISURATO RIGOROSAMENTE IN SECONDI)
+    function toggleAlignerState() {
+      if (!appState.isRemoved) {
+        // ERA INDOSSATO -> ORA TOLTO
+        appState.isRemoved = true;
+        appState.removalStartTime = Date.now();
+      } else {
+        // ERA TOLTO -> ORA RIMESSO
+        // Calcola i secondi effettivi trascorsi (es. 20 secondi = 20s, senza arrotondare a 1 minuto)
+        const elapsedSec = Math.max(0, Math.floor((Date.now() - appState.removalStartTime) / 1000));
+        appState.todayRemovedSeconds += elapsedSec;
+        
+        // Registra sessione
+        const now = new Date();
+        const start = new Date(appState.removalStartTime);
+        const formatH = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+        appState.todaySessions.unshift({
+          start: formatH(start),
+          end: formatH(now),
+          durationSec: elapsedSec,
+          note: elapsedSec < 60 ? "Rimozione Rapida" : "Pausa / Pasto"
+        });
+
+        appState.isRemoved = false;
+        appState.removalStartTime = null;
+      }
+
+      renderAll();
+    }
+
+    // AGGIUNTA TEST RAPIDO (ES. 20 SECONDI)
+    function addQuickTestSeconds(secs) {
+      appState.todayRemovedSeconds += secs;
+      const now = new Date();
+      const start = new Date(now.getTime() - secs * 1000);
+      const formatH = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+      appState.todaySessions.unshift({
+        start: formatH(start),
+        end: formatH(now),
+        durationSec: secs,
+        note: "Test 20 secondi"
+      });
+      renderAll();
+    }
+
+    // CAMBIA GIORNI DI RECUPERO MANUALMENTE
+    function changeRecoveryDays(delta) {
+      appState.recoveryDays = Math.max(0, appState.recoveryDays + delta);
+      appState.cycles[appState.cycles.length - 1].recoveryDays = appState.recoveryDays;
+      renderAll();
+    }
+
+    // APPLICA SUGGERIMENTO INTELLIGENTE
+    function applySuggestedRecovery() {
+      // Calcolo basato sulle ore perse
+      appState.recoveryDays = 2; // es. 2 giorni suggeriti
+      appState.cycles[appState.cycles.length - 1].recoveryDays = appState.recoveryDays;
+      renderAll();
+      alert("✅ Suggerimento applicato: +2 giorni di recupero aggiunti al ciclo corrente!");
+    }
+
+    // START NUOVO CICLO
+    function startNewCycleModal() {
+      const nextNum = appState.currentCycleNumber + 1;
+      const confirmStart = confirm(`Confermi il cambio mascherina e l'inizio del nuovo ciclo (Mascherina #${nextNum}) da 14 giorni?`);
+      if (confirmStart) {
+        // Completa ciclo precedente
+        appState.cycles[appState.cycles.length - 1].completed = true;
+        
+        // Crea nuovo ciclo
+        appState.currentCycleNumber = nextNum;
+        appState.recoveryDays = 0;
+        appState.currentCycleStartDate = new Date(); // Inizia oggi
+        const color = CYCLE_COLORS[(nextNum - 1) % CYCLE_COLORS.length];
+        
+        appState.cycles.push({
+          number: nextNum,
+          startDate: new Date(),
+          recoveryDays: 0,
+          color: color,
+          completed: false
+        });
+
+        renderAll();
+        switchAppTab('calendar');
+        alert(`🎉 Complimenti! Mascherina #${nextNum} iniziata con successo. Il calendario è stato aggiornato con il nuovo colore!`);
+      }
+    }
+
+    // CAMBIO TAB APP
+    function switchAppTab(tabName) {
+      const tabs = ['today', 'calendar', 'recovery', 'stats', 'history'];
+      tabs.forEach(t => {
+        const screen = document.getElementById(`screen-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (screen) screen.style.display = (t === tabName) ? 'block' : 'none';
+        if (btn) {
+          if (t === tabName) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+      if (tabName === 'calendar') renderCalendar();
+      if (tabName === 'stats') renderStats();
+      if (tabName === 'history') renderHistory();
+    }
+
+    // RENDER PRINCIPALE
+    function renderAll() {
+      const curCycle = appState.cycles[appState.cycles.length - 1];
+      const cycleColor = curCycle.color;
+      
+      // Calcoli odierni precisi al secondo (NESSUN arrotondamento forzato al minuto)
+      const todayWornSec = Math.max(0, (24 * 3600) - appState.todayRemovedSeconds);
+      const wornHours = Math.floor(todayWornSec / 3600);
+      const wornRemMins = Math.floor((todayWornSec % 3600) / 60);
+      const pauseLeftSec = Math.max(0, (2 * 3600) - appState.todayRemovedSeconds);
+
+      // 1. AGGIORNA WIDGET PICCOLO
+      document.getElementById('widgetCycleText').textContent = `M#${appState.currentCycleNumber}`;
+      document.getElementById('widgetCycleDot').style.background = cycleColor;
+
+      const widgetBadge = document.getElementById('widgetStatusBadge');
+      const widgetBodyLabel = document.getElementById('widgetBodyLabel');
+      const widgetTimerVal = document.getElementById('widgetTimerVal');
+      const widgetSubtext = document.getElementById('widgetSubtext');
+      const widgetBtn = document.getElementById('widgetActionBtn');
+      const widgetBtnText = document.getElementById('widgetBtnText');
+      const widgetBtnIcon = document.getElementById('widgetBtnIcon');
+
+      if (appState.isRemoved) {
+        widgetBadge.textContent = "TOLTO";
+        widgetBadge.className = "widget-status-badge status-badge-off";
+        widgetBodyLabel.textContent = "FUORI DA";
+        widgetTimerVal.className = "widget-timer-val off";
+        widgetSubtext.textContent = `Oggi fuori: ${formatSecondsPrecise(appState.todayRemovedSeconds)}`;
+        
+        // Pulsante del widget diventa RIMESSO
+        widgetBtn.className = "widget-btn btn-rimesso";
+        widgetBtnText.textContent = "Rimesso";
+        widgetBtnIcon.textContent = "✓";
+      } else {
+        widgetBadge.textContent = "INDOSSATO";
+        widgetBadge.className = "widget-status-badge status-badge-worn";
+        widgetBodyLabel.textContent = "OGGI PORTATO";
+        widgetTimerVal.className = "widget-timer-val";
+        widgetTimerVal.textContent = `${wornHours}h ${wornRemMins}m`;
+        widgetSubtext.textContent = `Pausa rimasta: ${formatSecondsPrecise(pauseLeftSec)}`;
+        
+        // Pulsante del widget diventa TOLTO
+        widgetBtn.className = "widget-btn btn-tolto";
+        widgetBtnText.textContent = "Tolto";
+        widgetBtnIcon.textContent = "⏸";
+      }
+
+      // 2. AGGIORNA DASHBOARD APP (OGGI)
+      document.getElementById('bannerCycleDot').style.background = cycleColor;
+      document.getElementById('bannerCycleTitle').textContent = `Mascherina #${appState.currentCycleNumber} (14 giorni)`;
+      
+      const calcEnd = getCalculatedEndDate(curCycle.startDate, 14, appState.recoveryDays);
+      document.getElementById('bannerCycleSub').textContent = `Giorno 7 di ${14 + appState.recoveryDays} • Cambio il ${formatDateShort(calcEnd)}`;
+
+      const appHeroPill = document.getElementById('appHeroPill');
+      const appHeroDot = document.getElementById('appHeroDot');
+      const appHeroStateText = document.getElementById('appHeroStateText');
+      const ringCircle = document.getElementById('ringProgressCircle');
+      const ringMainTime = document.getElementById('ringMainTime');
+      const ringSubLabel = document.getElementById('ringSubLabel');
+      const appBigBtn = document.getElementById('appBigToggleBtn');
+      const appBigBtnIcon = document.getElementById('appBigBtnIcon');
+      const appBigBtnText = document.getElementById('appBigBtnText');
+
+      if (appState.isRemoved) {
+        appHeroPill.style.background = "rgba(247, 127, 0, 0.15)";
+        appHeroPill.style.color = "#C05621";
+        appHeroStateText.textContent = "APPARECCHIO TOLTO";
+        appHeroDot.style.color = "#EA580C";
+        ringCircle.style.stroke = "#EA580C";
+        ringSubLabel.textContent = "Fuori da adesso";
+
+        appBigBtn.style.background = "linear-gradient(135deg, #02C39A, #00A896)";
+        appBigBtnIcon.textContent = "✓";
+        appBigBtnText.textContent = "Rimesso";
+      } else {
+        appHeroPill.style.background = "rgba(2, 195, 154, 0.15)";
+        appHeroPill.style.color = "#029474";
+        appHeroStateText.textContent = "APPARECCHIO INDOSSATO";
+        appHeroDot.style.color = "#02C39A";
+        ringCircle.style.stroke = "var(--primary)";
+        ringMainTime.textContent = `${wornHours}h ${wornRemMins}m`;
+        ringSubLabel.textContent = "Portato oggi (Target 22h)";
+
+        // Calcolo offset anello (target 22h = 79200 secondi)
+        const progress = Math.min(1.0, todayWornSec / (22 * 3600));
+        const dashoffset = 440 - (440 * progress);
+        ringCircle.style.strokeDashoffset = dashoffset;
+
+        appBigBtn.style.background = "linear-gradient(135deg, #F97316, #DC2626)";
+        appBigBtnIcon.textContent = "⏸";
+        appBigBtnText.textContent = "Tolto";
+      }
+
+      document.getElementById('statTodayRemoved').textContent = formatSecondsPrecise(appState.todayRemovedSeconds);
+      document.getElementById('statTodayPauseLeft').textContent = formatSecondsPrecise(pauseLeftSec);
+      document.getElementById('statTodaySessions').textContent = `${appState.todaySessions.length}`;
+
+      // Render lista sessioni con secondi esatti
+      const sessionListEl = document.getElementById('todaySessionsList');
+      sessionListEl.innerHTML = appState.todaySessions.map(s => {
+        const sec = (s.durationSec !== undefined) ? s.durationSec : (s.duration || 0) * 60;
+        return `
+          <div class="session-item">
+            <div>
+              <b>${s.start} - ${s.end}</b>
+              <span style="color: #64748B; font-size: 11px; margin-left: 6px;">(${s.note})</span>
+            </div>
+            <b style="color: #0F172A;">${formatSecondsPrecise(sec)}</b>
+          </div>
+        `;
+      }).join('');
+
+      // 3. AGGIORNA SCHERMATA RECUPERO
+      document.getElementById('stepperDaysVal').textContent = `+${appState.recoveryDays}`;
+      document.getElementById('recExtraDaysLabel').textContent = `+${appState.recoveryDays} ${appState.recoveryDays === 1 ? 'giorno' : 'giorni'}`;
+      document.getElementById('recStartDate').textContent = formatDateFull(curCycle.startDate);
+      document.getElementById('recCalculatedEndDate').textContent = formatDateFull(calcEnd);
+      document.getElementById('recNextCycleDate').textContent = formatDateFull(calcEnd);
+
+      renderCalendar();
+      renderHistory();
+    }
+
+    // CALCOLO DATA FINE CON GIORNI DI RECUPERO
+    function getCalculatedEndDate(startDate, nominalDays, recoveryDays) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + nominalDays + recoveryDays);
+      return d;
+    }
+
+    // RENDER CALENDARIO CON COLORI DIVERSI PER OGNI CICLO
+    function renderCalendar() {
+      const grid = document.getElementById('calGrid');
+      grid.innerHTML = '';
+      
+      const year = 2026;
+      const month = 9; // Ottobre (0-indexed: 9 = Ottobre)
+      
+      // Giorni nel mese: 31
+      const totalDays = 31;
+      // 1 Ottobre 2026 è Giovedì (offset 3 giorni: Lun, Mar, Mer vuoti)
+      const firstDayOffset = 3; 
+
+      for (let i = 0; i < firstDayOffset; i++) {
+        const blank = document.createElement('div');
+        blank.style.height = '48px';
+        grid.appendChild(blank);
+      }
+
+      for (let day = 1; day <= totalDays; day++) {
+        const cellDate = new Date(year, month, day);
+        const cell = document.createElement('div');
+        cell.className = 'cal-cell';
+        if (day === 14) cell.classList.add('selected');
+
+        // Trova a quale ciclo appartiene questo giorno
+        let assignedCycle = null;
+        let isRecovery = false;
+        let isStart = false;
+        let isEnd = false;
+
+        appState.cycles.forEach(c => {
+          const cStart = new Date(c.startDate);
+          const cNominalEnd = new Date(c.startDate);
+          cNominalEnd.setDate(cNominalEnd.getDate() + 14);
+          const cFinalEnd = getCalculatedEndDate(c.startDate, 14, c.recoveryDays);
+
+          if (cellDate >= cStart && cellDate <= cFinalEnd) {
+            assignedCycle = c;
+            if (cellDate.toDateString() === cStart.toDateString()) isStart = true;
+            if (cellDate.toDateString() === cFinalEnd.toDateString()) isEnd = true;
+            if (cellDate > cNominalEnd && cellDate <= cFinalEnd) isRecovery = true;
+          }
+        });
+
+        let bgStyle = '';
+        let dotHtml = '';
+        let badgeHtml = '';
+
+        if (assignedCycle) {
+          const cycleColor = assignedCycle.color;
+          cell.style.background = isRecovery ? hexToRgba(cycleColor, 0.12) : hexToRgba(cycleColor, 0.22);
+          cell.style.borderColor = hexToRgba(cycleColor, 0.4);
+          dotHtml = `<div class="cal-cycle-dot" style="background: ${cycleColor};"></div>`;
+
+          if (isStart) {
+            badgeHtml = `<div class="cal-badge-text" style="background: ${cycleColor}; color: white;">Inizio M#${assignedCycle.number}</div>`;
+          } else if (isEnd) {
+            badgeHtml = `<div class="cal-badge-text" style="background: ${cycleColor}; color: white;">Fine M#${assignedCycle.number}</div>`;
+          } else if (isRecovery) {
+            badgeHtml = `<div class="cal-badge-text" style="background: #F97316; color: white;">+rec</div>`;
+          } else {
+            badgeHtml = `<div style="font-size: 8px; font-weight: 700; color: #475569;">22h</div>`;
+          }
+        }
+
+        cell.innerHTML = `
+          <div style="display: flex; justify-content: space-between;">
+            <span class="cal-day-num" style="${day === 14 ? 'font-weight: 900; color: var(--primary);' : ''}">${day}</span>
+            ${dotHtml}
+          </div>
+          <div>${badgeHtml}</div>
+        `;
+
+        cell.onclick = () => selectCalDay(day, assignedCycle);
+        grid.appendChild(cell);
+      }
+
+      // Legenda cicli
+      const legEl = document.getElementById('calLegend');
+      legEl.innerHTML = appState.cycles.map(c => `
+        <div style="display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; background: ${hexToRgba(c.color, 0.2)}; color: ${c.color};">
+          <div style="width: 8px; height: 8px; border-radius: 50%; background: ${c.color};"></div>
+          Mascherina #${c.number} ${c.recoveryDays > 0 ? `(+${c.recoveryDays}g)` : ''}
+        </div>
+      `).join('');
+    }
+
+    function selectCalDay(day, cycle) {
+      document.getElementById('calDetailDate').textContent = `${day} Ottobre 2026`;
+      if (cycle) {
+        document.getElementById('calDetailCycleBadge').textContent = `Mascherina #${cycle.number}`;
+        document.getElementById('calDetailCycleBadge').style.background = hexToRgba(cycle.color, 0.2);
+        document.getElementById('calDetailCycleBadge').style.color = cycle.color;
+        
+        const finalEnd = getCalculatedEndDate(cycle.startDate, 14, cycle.recoveryDays);
+        document.getElementById('calDetailCycleDates').innerHTML = `
+          🏁 Fine Ciclo M#${cycle.number}: <b>${formatDateShort(finalEnd)}</b><br>
+          🚀 Inizio Prossimo Ciclo M#${cycle.number + 1}: <b>${formatDateShort(finalEnd)}</b>
+        `;
+      } else {
+        document.getElementById('calDetailCycleBadge').textContent = `Nessun ciclo attivo`;
+        document.getElementById('calDetailCycleDates').innerHTML = `Non pianificato.`;
+      }
+    }
+
+    // RENDER STATISTICHE
+    function renderStats() {
+      const barsContainer = document.getElementById('statsChartBars');
+      barsContainer.innerHTML = '';
+      
+      const sampleDays = [
+        { d: "1/10", w: 22.5 }, { d: "2/10", w: 21.0 }, { d: "3/10", w: 22.0 },
+        { d: "4/10", w: 19.5 }, { d: "5/10", w: 22.2 }, { d: "6/10", w: 21.8 },
+        { d: "7/10", w: 20.5 }, { d: "8/10", w: 22.3 }, { d: "9/10", w: 22.0 },
+        { d: "10/10", w: 21.2 }, { d: "11/10", w: 18.5 }, { d: "12/10", w: 22.6 },
+        { d: "13/10", w: 22.1 }, { d: "14/10", w: 20.2 }
+      ];
+
+      sampleDays.forEach(item => {
+        const heightPct = (item.w / 24) * 100;
+        const isMet = item.w >= 22;
+        const bar = document.createElement('div');
+        bar.style.flex = '1';
+        bar.style.height = `${heightPct}%`;
+        bar.style.background = isMet ? 'var(--primary)' : 'var(--warning)';
+        bar.style.borderRadius = '4px';
+        bar.style.cursor = 'pointer';
+        bar.title = `${item.d}: ${item.w}h indossato`;
+        barsContainer.appendChild(bar);
+      });
+    }
+
+    // RENDER STORICO
+    function renderHistory() {
+      const el = document.getElementById('historyCyclesList');
+      el.innerHTML = appState.cycles.map(c => {
+        const finalEnd = getCalculatedEndDate(c.startDate, 14, c.recoveryDays);
+        return `
+          <div class="card" style="border-left: 6px solid ${c.color}; margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 16px; font-weight: 800; color: #0F172A;">Mascherina #${c.number}</span>
+              <span class="badge-pill" style="margin: 0; background: ${c.completed ? '#F1F5F9' : hexToRgba(c.color, 0.2)}; color: ${c.completed ? '#64748B' : c.color};">
+                ${c.completed ? 'COMPLETATA' : 'ATTIVA IN CORSO'}
+              </span>
+            </div>
+            <div style="font-size: 12px; color: #64748B; margin-top: 6px;">
+              Date: <b>${formatDateShort(c.startDate)} → ${formatDateShort(finalEnd)}</b>
+            </div>
+            <div style="font-size: 12px; margin-top: 4px;">
+              Durata: 14gg base + <b>${c.recoveryDays}gg recupero</b> = <b>${14 + c.recoveryDays}gg totali</b>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // UTILITY HELPER (PRECISIONE IN SECONDI)
+    function formatSecondsPrecise(sec) {
+      const total = Math.max(0, Math.floor(sec));
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      if (h > 0) return `${h}h ${m}m` + (s > 0 ? ` ${s}s` : '');
+      if (m > 0) return s > 0 ? `${m}m ${s}s` : `${m}m`;
+      return `${s}s`;
+    }
+
+    function formatMins(m) {
+      const h = Math.floor(m / 60);
+      const rem = m % 60;
+      return h > 0 ? `${h}h ${rem}m` : `${rem}m`;
+    }
+
+    function formatDateShort(d) {
+      const months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+      return `${d.getDate()} ${months[d.getMonth()]}`;
+    }
+
+    function formatDateFull(d) {
+      const months = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function hexToRgba(hex, alpha) {
+      let c = hex.substring(1);
+      if (c.length === 3) c = c.split('').map(x => x + x).join('');
+      const num = parseInt(c, 16);
+      return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+    }
+
+    // AVVIO
+    window.onload = init;
+  </script>
+
+</body>
+</html>
