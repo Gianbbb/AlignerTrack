@@ -131,6 +131,8 @@ extension Color {
         // Fallback default
         return "#00B4D8"
     }
+
+    public static let emeraldMint = Color(red: 0.0, green: 0.72, blue: 0.58)
 }
 
 // MARK: - Predefined Cycle Colors

@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 30
 
     steps:
@@ -21,7 +21,9 @@ jobs:
         run: brew install xcodegen
 
       - name: Genera Progetto Xcode
-        run: xcodegen generate
+        run: |
+          xcodegen generate
+          sed -i '' 's/objectVersion = 77;/objectVersion = 56;/g' AlignerTrack.xcodeproj/project.pbxproj || true
 
       - name: Lista Scheme Disponibili
         run: xcodebuild -project AlignerTrack.xcodeproj -list
@@ -34,14 +36,15 @@ jobs:
             -configuration Release \
             -destination "generic/platform=iOS" \
             -derivedDataPath build \
+            CODE_SIGN_STYLE=Manual \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            2>&1 | tail -100
+            CODE_SIGN_IDENTITY=""
 
       - name: Crea Pacchetto .IPA
         run: |
           mkdir -p build/Payload
+          rm -rf build/Payload/*
           cp -r build/Build/Products/Release-iphoneos/AlignerTrack.app build/Payload/
           cd build && zip -r -9 AlignerTrack.ipa Payload
 

@@ -317,10 +317,6 @@ struct MediumWidgetView: View {
     }
 }
 
-// MARK: - App Color Helper
-extension Color {
-    static let emeraldMint = Color(red: 0.0, green: 0.72, blue: 0.58)
-}
 
 // MARK: - Widget Definition
 public struct AlignerWidget: Widget {

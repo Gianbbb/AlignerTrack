@@ -24,10 +24,12 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alignertrack.app
         SWIFT_VERSION: "5.9"
+        CODE_SIGN_STYLE: Manual
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
         IPHONEOS_DEPLOYMENT_TARGET: 17.0
+        TARGETED_DEVICE_FAMILY: "1"
     dependencies:
       - target: AlignerWidgetExtension
 
@@ -37,7 +39,6 @@ targets:
     deploymentTarget: 17.0
     sources:
       - path: iOS/Models
-      - path: iOS/Services
       - path: iOS/Widget
     info:
       path: iOS/WidgetInfo.plist
@@ -47,10 +48,12 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alignertrack.app.widget
         SWIFT_VERSION: "5.9"
+        CODE_SIGN_STYLE: Manual
         CODE_SIGNING_ALLOWED: NO
         CODE_SIGNING_REQUIRED: NO
         CODE_SIGN_IDENTITY: ""
         IPHONEOS_DEPLOYMENT_TARGET: 17.0
+        TARGETED_DEVICE_FAMILY: "1"
 
 schemes:
   AlignerTrack:
