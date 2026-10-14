@@ -4,18 +4,18 @@ import AppIntents
 import UIKit
 
 // MARK: - Timeline Entry
-public struct AlignerEntry: TimelineEntry {
-    public let date: Date
-    public let isRemoved: Bool
-    public let removalStartTime: Date?
-    public let todayRemovedSeconds: Int
-    public let todayWornSeconds: Int
-    public let cycleNumber: Int
-    public let cycleColorHex: String
+struct AlignerEntry: TimelineEntry {
+    let date: Date
+    let isRemoved: Bool
+    let removalStartTime: Date?
+    let todayRemovedSeconds: Int
+    let todayWornSeconds: Int
+    let cycleNumber: Int
+    let cycleColorHex: String
 }
 
 // MARK: - Timeline Provider
-public struct AlignerTimelineProvider: TimelineProvider {
+struct AlignerTimelineProvider: TimelineProvider {
     public func placeholder(in context: Context) -> AlignerEntry {
         AlignerEntry(
             date: Date(),
@@ -101,7 +101,7 @@ public struct AlignerTimelineProvider: TimelineProvider {
 
 // MARK: - Widget Views
 
-public struct AlignerWidgetEntryView: View {
+struct AlignerWidgetEntryView: View {
     var entry: AlignerEntry
     @Environment(\.widgetFamily) var family
 
@@ -319,12 +319,12 @@ struct MediumWidgetView: View {
 
 
 // MARK: - Widget Definition
-public struct AlignerWidget: Widget {
-    public let kind: String = "AlignerWidget"
+struct AlignerWidget: Widget {
+    let kind: String = "AlignerWidget"
 
-    public init() {}
+    init() {}
 
-    public var body: some WidgetConfiguration {
+    var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: AlignerTimelineProvider()) { entry in
             AlignerWidgetEntryView(entry: entry)
                 .containerBackground(for: .widget) {

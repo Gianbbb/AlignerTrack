@@ -3,11 +3,11 @@ import AppIntents
 import WidgetKit
 
 @available(iOS 16.0, *)
-public struct ToggleAlignerIntent: AppIntent {
-    public static var title: LocalizedStringResource = "Alterna Stato Mascherina"
-    public static var description = IntentDescription("Registra quando togli o rimetti l'apparecchio")
+struct ToggleAlignerIntent: AppIntent {
+    static var title: LocalizedStringResource = "Alterna Stato Mascherina"
+    static var description = IntentDescription("Registra quando togli o rimetti l'apparecchio")
 
-    public init() {}
+    init() {}
 
     public func perform() async throws -> some IntentResult {
         let defaults: UserDefaults
