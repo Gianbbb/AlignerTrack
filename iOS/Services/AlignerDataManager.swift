@@ -15,6 +15,8 @@ public class AlignerDataManager: ObservableObject {
     @Published public var sessions: [RemovalSession] = []
     @Published public var cycles: [AlignerCycle] = []
     @Published public var currentCycleId: UUID? = nil
+    @Published public var dailyTargetWearHours: Double = 22.0
+    @Published public var totalTreatmentAligners: Int = 20
 
     public init() {
         if let sharedDefaults = UserDefaults(suiteName: AppGroupConstants.groupIdentifier) {
@@ -65,11 +67,19 @@ public class AlignerDataManager: ObservableObject {
         } else if let first = cycles.first(where: { !$0.isCompleted }) ?? cycles.last {
             self.currentCycleId = first.id
         }
+
+        let savedTarget = defaults.double(forKey: AppGroupConstants.targetWearHoursKey)
+        self.dailyTargetWearHours = savedTarget > 0 ? savedTarget : 22.0
+
+        let savedTotal = defaults.integer(forKey: AppGroupConstants.totalAlignersKey)
+        self.totalTreatmentAligners = savedTotal > 0 ? savedTotal : 20
     }
 
     public func saveData() {
         defaults.set(isAlignerRemoved, forKey: AppGroupConstants.stateKey)
         defaults.set(currentRemovalStartTime, forKey: AppGroupConstants.removalStartTimeKey)
+        defaults.set(dailyTargetWearHours, forKey: AppGroupConstants.targetWearHoursKey)
+        defaults.set(totalTreatmentAligners, forKey: AppGroupConstants.totalAlignersKey)
         if let data = try? JSONEncoder().encode(sessions) {
             defaults.set(data, forKey: AppGroupConstants.sessionsKey)
         }
@@ -167,6 +177,85 @@ public class AlignerDataManager: ObservableObject {
         saveData()
     }
 
+    /// Aggiorna completamente un ciclo (numero, date, giorni nominali, recupero, note, foto)
+    public func updateCycle(_ updated: AlignerCycle) {
+        if let index = cycles.firstIndex(where: { $0.id == updated.id }) {
+            cycles[index] = updated
+            saveData()
+        }
+    }
+
+    /// Modifica il giorno corrente del ciclo (es. "Oggi voglio essere al giorno X di N")
+    public func setCycleCurrentDay(for cycleId: UUID, currentDay: Int) {
+        guard let index = cycles.firstIndex(where: { $0.id == cycleId }) else { return }
+        let targetDay = max(1, currentDay)
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        if let newStartDate = calendar.date(byAdding: .day, value: -(targetDay - 1), to: today) {
+            cycles[index].startDate = newStartDate
+            saveData()
+        }
+    }
+
+    /// Imposta direttamente la data di fine desiderata per il ciclo
+    public func setCycleEndDate(for cycleId: UUID, targetEndDate: Date) {
+        guard let index = cycles.firstIndex(where: { $0.id == cycleId }) else { return }
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: cycles[index].startDate)
+        let end = calendar.startOfDay(for: targetEndDate)
+        let diffDays = max(1, calendar.dateComponents([.day], from: start, to: end).day ?? cycles[index].nominalDays)
+        
+        if diffDays >= cycles[index].nominalDays {
+            cycles[index].recoveryDays = diffDays - cycles[index].nominalDays
+        } else {
+            cycles[index].nominalDays = diffDays
+            cycles[index].recoveryDays = 0
+        }
+        saveData()
+    }
+
+    /// Salva o rimuove la foto del ciclo (denti/sorriso/mascherina)
+    public func setCyclePhoto(for cycleId: UUID, photoData: Data?) {
+        if let index = cycles.firstIndex(where: { $0.id == cycleId }) {
+            cycles[index].photoData = photoData
+            saveData()
+        }
+    }
+
+    /// Aggiorna le impostazioni globali del trattamento (ore target e mascherine totali)
+    public func updateTreatmentSettings(targetHours: Double, totalAligners: Int) {
+        self.dailyTargetWearHours = max(18.0, min(24.0, targetHours))
+        self.totalTreatmentAligners = max(1, totalAligners)
+        saveData()
+    }
+
+    /// Elimina un ciclo
+    public func deleteCycle(cycleId: UUID) {
+        cycles.removeAll { $0.id == cycleId }
+        if currentCycleId == cycleId {
+            currentCycleId = cycles.first(where: { !$0.isCompleted })?.id ?? cycles.last?.id
+        }
+        saveData()
+    }
+
+    /// Reset di fabbrica dei dati
+    public func resetAllData() {
+        sessions = []
+        isAlignerRemoved = false
+        currentRemovalStartTime = nil
+        let firstCycle = AlignerCycle(
+            cycleNumber: 1,
+            startDate: Calendar.current.startOfDay(for: Date()),
+            nominalDays: 14,
+            recoveryDays: 0,
+            colorHex: CycleColorPalette.color(forCycleNumber: 1),
+            totalTreatmentAligners: totalTreatmentAligners
+        )
+        cycles = [firstCycle]
+        currentCycleId = firstCycle.id
+        saveData()
+    }
+
     // MARK: - Daily Calculations
 
     /// Calcola i secondi totali in cui l'apparecchio è stato tolto in un giorno specifico
@@ -220,11 +309,15 @@ public class AlignerDataManager: ObservableObject {
         return max(0, secondsInDay - removed)
     }
 
-    /// Tempo massimo consentito senza apparecchio al giorno: 2 ore (7200 secondi)
-    public let dailyAllowedRemovalSeconds: TimeInterval = 2 * 3600 // 2h
+    /// Tempo massimo consentito senza apparecchio al giorno (24h - target)
+    public var dailyAllowedRemovalSeconds: TimeInterval {
+        max(0, (24.0 - dailyTargetWearHours) * 3600)
+    }
 
-    /// Target giornaliero di indossamento: 22 ore (79200 secondi)
-    public let dailyTargetWearSeconds: TimeInterval = 22 * 3600 // 22h
+    /// Target giornaliero di indossamento configurabile (es. 22h, 20h, ecc.)
+    public var dailyTargetWearSeconds: TimeInterval {
+        dailyTargetWearHours * 3600
+    }
 
     /// Restituisce la percentuale di obiettivo odierno (base 22h)
     public func todayWearProgress() -> Double {

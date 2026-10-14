@@ -7,6 +7,7 @@ public struct ContentView: View {
     public enum TabItem: String, Hashable {
         case today = "Oggi"
         case calendar = "Calendario"
+        case treatment = "Trattamento"
         case recovery = "Recupero"
         case stats = "Statistiche"
         case history = "Storico"
@@ -28,6 +29,12 @@ public struct ContentView: View {
                 }
                 .tag(TabItem.calendar)
 
+            TreatmentManagementView(dataManager: dataManager)
+                .tabItem {
+                    Label("Trattamento", systemImage: "slider.horizontal.3")
+                }
+                .tag(TabItem.treatment)
+
             RecoveryManagementView(dataManager: dataManager)
                 .tabItem {
                     Label("Recupero", systemImage: "bandage.fill")
@@ -39,12 +46,6 @@ public struct ContentView: View {
                     Label("Statistiche", systemImage: "chart.bar.xaxis")
                 }
                 .tag(TabItem.stats)
-
-            CycleHistoryView(dataManager: dataManager)
-                .tabItem {
-                    Label("Storico", systemImage: "tray.full.fill")
-                }
-                .tag(TabItem.history)
         }
         .tint(Color.emeraldMint)
     }

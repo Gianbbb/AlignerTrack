@@ -9,6 +9,8 @@ public enum AppGroupConstants {
     public static let sessionsKey = "aligner_sessions"
     public static let cyclesKey = "aligner_cycles"
     public static let currentCycleIdKey = "aligner_current_cycle_id"
+    public static let targetWearHoursKey = "aligner_target_wear_hours"
+    public static let totalAlignersKey = "aligner_total_treatment_aligners"
 }
 
 // MARK: - Models
@@ -54,6 +56,12 @@ public struct AlignerCycle: Identifiable, Codable, Equatable {
     public var colorHex: String
     public var isCompleted: Bool = false
     public var note: String = ""
+    public var photoData: Data? = nil
+    public var totalTreatmentAligners: Int = 20
+
+    enum CodingKeys: String, CodingKey {
+        case id, cycleNumber, startDate, nominalDays, recoveryDays, colorHex, isCompleted, note, photoData, totalTreatmentAligners
+    }
 
     public init(
         id: UUID = UUID(),
@@ -63,7 +71,9 @@ public struct AlignerCycle: Identifiable, Codable, Equatable {
         recoveryDays: Int = 0,
         colorHex: String = "#00B4D8",
         isCompleted: Bool = false,
-        note: String = ""
+        note: String = "",
+        photoData: Data? = nil,
+        totalTreatmentAligners: Int = 20
     ) {
         self.id = id
         self.cycleNumber = cycleNumber
@@ -73,6 +83,22 @@ public struct AlignerCycle: Identifiable, Codable, Equatable {
         self.colorHex = colorHex
         self.isCompleted = isCompleted
         self.note = note
+        self.photoData = photoData
+        self.totalTreatmentAligners = totalTreatmentAligners
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.cycleNumber = try container.decodeIfPresent(Int.self, forKey: .cycleNumber) ?? 1
+        self.startDate = try container.decodeIfPresent(Date.self, forKey: .startDate) ?? Date()
+        self.nominalDays = try container.decodeIfPresent(Int.self, forKey: .nominalDays) ?? 14
+        self.recoveryDays = try container.decodeIfPresent(Int.self, forKey: .recoveryDays) ?? 0
+        self.colorHex = try container.decodeIfPresent(String.self, forKey: .colorHex) ?? "#00B4D8"
+        self.isCompleted = try container.decodeIfPresent(Bool.self, forKey: .isCompleted) ?? false
+        self.note = try container.decodeIfPresent(String.self, forKey: .note) ?? ""
+        self.photoData = try container.decodeIfPresent(Data.self, forKey: .photoData)
+        self.totalTreatmentAligners = try container.decodeIfPresent(Int.self, forKey: .totalTreatmentAligners) ?? 20
     }
 
     /// Total days of the cycle including manual recovery days

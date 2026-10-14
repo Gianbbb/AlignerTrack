@@ -43,7 +43,13 @@ public struct TodayDashboardView: View {
             .navigationTitle("Oggi")
             .background(Color(uiColor: .systemGroupedBackground))
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    NavigationLink(destination: TreatmentManagementView(dataManager: dataManager)) {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 17, weight: .bold))
+                            .foregroundColor(Color.emeraldMint)
+                    }
+
                     Button {
                         showingAddManualSheet = true
                     } label: {
