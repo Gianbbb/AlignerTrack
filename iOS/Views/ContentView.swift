@@ -7,10 +7,9 @@ public struct ContentView: View {
     public enum TabItem: String, Hashable {
         case today = "Oggi"
         case calendar = "Calendario"
+        case tools = "Strumenti"
         case treatment = "Trattamento"
-        case recovery = "Recupero"
         case stats = "Statistiche"
-        case history = "Storico"
     }
 
     public init() {}
@@ -29,17 +28,17 @@ public struct ContentView: View {
                 }
                 .tag(TabItem.calendar)
 
+            CareToolsView(dataManager: dataManager)
+                .tabItem {
+                    Label("Strumenti", systemImage: "cross.case.fill")
+                }
+                .tag(TabItem.tools)
+
             TreatmentManagementView(dataManager: dataManager)
                 .tabItem {
                     Label("Trattamento", systemImage: "slider.horizontal.3")
                 }
                 .tag(TabItem.treatment)
-
-            RecoveryManagementView(dataManager: dataManager)
-                .tabItem {
-                    Label("Recupero", systemImage: "bandage.fill")
-                }
-                .tag(TabItem.recovery)
 
             StatsView(dataManager: dataManager)
                 .tabItem {

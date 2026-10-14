@@ -17,6 +17,9 @@ public class AlignerDataManager: ObservableObject {
     @Published public var currentCycleId: UUID? = nil
     @Published public var dailyTargetWearHours: Double = 22.0
     @Published public var totalTreatmentAligners: Int = 20
+    @Published public var notificationDelayMinutes: Int = 45
+    @Published public var specialEventMode: Bool = false
+    @Published public var specialEventAllowedHours: Double = 4.0
 
     public init() {
         if let sharedDefaults = UserDefaults(suiteName: AppGroupConstants.groupIdentifier) {
@@ -73,6 +76,13 @@ public class AlignerDataManager: ObservableObject {
 
         let savedTotal = defaults.integer(forKey: AppGroupConstants.totalAlignersKey)
         self.totalTreatmentAligners = savedTotal > 0 ? savedTotal : 20
+
+        let savedDelay = defaults.integer(forKey: AppGroupConstants.notificationDelayMinutesKey)
+        self.notificationDelayMinutes = savedDelay > 0 ? savedDelay : 45
+
+        self.specialEventMode = defaults.bool(forKey: AppGroupConstants.specialEventModeKey)
+        let savedEventHours = defaults.double(forKey: AppGroupConstants.specialEventHoursKey)
+        self.specialEventAllowedHours = savedEventHours > 0 ? savedEventHours : 4.0
     }
 
     public func saveData() {
@@ -80,6 +90,9 @@ public class AlignerDataManager: ObservableObject {
         defaults.set(currentRemovalStartTime, forKey: AppGroupConstants.removalStartTimeKey)
         defaults.set(dailyTargetWearHours, forKey: AppGroupConstants.targetWearHoursKey)
         defaults.set(totalTreatmentAligners, forKey: AppGroupConstants.totalAlignersKey)
+        defaults.set(notificationDelayMinutes, forKey: AppGroupConstants.notificationDelayMinutesKey)
+        defaults.set(specialEventMode, forKey: AppGroupConstants.specialEventModeKey)
+        defaults.set(specialEventAllowedHours, forKey: AppGroupConstants.specialEventHoursKey)
         if let data = try? JSONEncoder().encode(sessions) {
             defaults.set(data, forKey: AppGroupConstants.sessionsKey)
         }
@@ -122,10 +135,12 @@ public class AlignerDataManager: ObservableObject {
             }
             isAlignerRemoved = false
             currentRemovalStartTime = nil
+            NotificationManager.shared.cancelRemovalReminder()
         } else {
             // Era indossato, adesso viene tolto
             isAlignerRemoved = true
             currentRemovalStartTime = Date()
+            NotificationManager.shared.scheduleRemovalReminder(minutes: notificationDelayMinutes)
         }
         saveData()
     }
@@ -309,9 +324,12 @@ public class AlignerDataManager: ObservableObject {
         return max(0, secondsInDay - removed)
     }
 
-    /// Tempo massimo consentito senza apparecchio al giorno (24h - target)
+    /// Tempo massimo consentito senza apparecchio al giorno (24h - target, oppure esteso in modalità evento speciale)
     public var dailyAllowedRemovalSeconds: TimeInterval {
-        max(0, (24.0 - dailyTargetWearHours) * 3600)
+        if specialEventMode {
+            return specialEventAllowedHours * 3600
+        }
+        return max(0, (24.0 - dailyTargetWearHours) * 3600)
     }
 
     /// Target giornaliero di indossamento configurabile (es. 22h, 20h, ecc.)

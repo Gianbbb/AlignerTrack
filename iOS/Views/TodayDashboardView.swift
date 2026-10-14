@@ -25,8 +25,16 @@ public struct TodayDashboardView: View {
                         ActiveCycleBanner(cycle: currentCycle, dataManager: dataManager)
                     }
 
+                    // MARK: - Banner Modalità Festa (se attiva)
+                    if dataManager.specialEventMode {
+                        SpecialEventActiveBanner(dataManager: dataManager)
+                    }
+
                     // MARK: - Hero Status Card (Stile Widget ma in grande)
                     MainStatusHeroCard(dataManager: dataManager, now: now)
+
+                    // MARK: - Strumenti Rapidi (Chewies, Pulizia, Foto, Report)
+                    TodayQuickToolsBar(dataManager: dataManager)
 
                     // MARK: - Statistiche Odierne Rapide
                     TodayStatsGrid(dataManager: dataManager, now: now)
@@ -128,6 +136,106 @@ struct ActiveCycleBanner: View {
         f.locale = Locale(identifier: "it_IT")
         f.dateFormat = "d MMMM"
         return f.string(from: date)
+    }
+}
+
+// MARK: - Special Event Active Banner
+struct SpecialEventActiveBanner: View {
+    @ObservedObject var dataManager: AlignerDataManager
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Image(systemName: "party.popper.fill")
+                .foregroundColor(.purple)
+                .font(.system(size: 16))
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Modalità Festa Attiva 🎉")
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(.purple)
+                Text("Pausa libera oggi estesa a \(Int(dataManager.specialEventAllowedHours)) ore.")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+            }
+
+            Spacer()
+
+            NavigationLink(destination: CareToolsView(dataManager: dataManager)) {
+                Text("Gestisci")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 4)
+                    .background(Color.purple.opacity(0.15))
+                    .foregroundColor(.purple)
+                    .cornerRadius(8)
+            }
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 14)
+                .fill(Color.purple.opacity(0.1))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.purple.opacity(0.3), lineWidth: 1)
+                )
+        )
+    }
+}
+
+// MARK: - Today Quick Tools Bar
+struct TodayQuickToolsBar: View {
+    @ObservedObject var dataManager: AlignerDataManager
+
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                NavigationLink(destination: CareToolsView(dataManager: dataManager)) {
+                    QuickToolPill(icon: "mouth.fill", label: "Chewies", color: Color.emeraldMint)
+                }
+
+                NavigationLink(destination: CareToolsView(dataManager: dataManager)) {
+                    QuickToolPill(icon: "bubbles.and.sparkles.fill", label: "Pulizia", color: .blue)
+                }
+
+                NavigationLink(destination: SmileComparisonView(dataManager: dataManager)) {
+                    QuickToolPill(icon: "photo.stack.fill", label: "Foto Sorriso", color: .pink)
+                }
+
+                NavigationLink(destination: CareToolsView(dataManager: dataManager)) {
+                    QuickToolPill(icon: "doc.richtext.fill", label: "Report PDF", color: .indigo)
+                }
+
+                NavigationLink(destination: TreatmentManagementView(dataManager: dataManager)) {
+                    QuickToolPill(icon: "slider.horizontal.3", label: "Modifica Date", color: .orange)
+                }
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+}
+
+struct QuickToolPill: View {
+    let icon: String
+    let label: String
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 12, weight: .bold))
+                .foregroundColor(color)
+
+            Text(label)
+                .font(.system(size: 12, weight: .bold, design: .rounded))
+                .foregroundColor(.primary)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(
+            Capsule()
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                .shadow(color: Color.black.opacity(0.04), radius: 3, y: 1)
+        )
     }
 }
 

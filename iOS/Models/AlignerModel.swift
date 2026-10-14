@@ -11,6 +11,9 @@ public enum AppGroupConstants {
     public static let currentCycleIdKey = "aligner_current_cycle_id"
     public static let targetWearHoursKey = "aligner_target_wear_hours"
     public static let totalAlignersKey = "aligner_total_treatment_aligners"
+    public static let specialEventModeKey = "aligner_special_event_mode"
+    public static let specialEventHoursKey = "aligner_special_event_hours"
+    public static let notificationDelayMinutesKey = "aligner_notification_delay_minutes"
 }
 
 // MARK: - Models
