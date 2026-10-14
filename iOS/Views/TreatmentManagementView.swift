@@ -1,12 +1,21 @@
 import SwiftUI
 import PhotosUI
 import UIKit
+import UniformTypeIdentifiers
 
 public struct TreatmentManagementView: View {
     @ObservedObject var dataManager: AlignerDataManager
     @State private var showingResetAlert = false
     @State private var showingEditCycleSheet = false
     @State private var cycleToEdit: AlignerCycle? = nil
+
+    // Backup & Ripristino (Cloud / File)
+    @State private var exportURL: URL? = nil
+    @State private var showingShareSheet = false
+    @State private var showingFileImporter = false
+    @State private var showingTextBackupSheet = false
+    @State private var showingImportResultAlert = false
+    @State private var importResultMessage = ""
 
     public init(dataManager: AlignerDataManager) {
         self.dataManager = dataManager
@@ -49,6 +58,21 @@ public struct TreatmentManagementView: View {
                         }
                     )
 
+                    // MARK: - Backup & Ripristino Dati (Cloud / File)
+                    BackupAndRestoreCard(
+                        dataManager: dataManager,
+                        onExportShare: { url in
+                            exportURL = url
+                            showingShareSheet = true
+                        },
+                        onImportFile: {
+                            showingFileImporter = true
+                        },
+                        onShowTextBackup: {
+                            showingTextBackupSheet = true
+                        }
+                    )
+
                     // MARK: - Zona Pericolo / Reset
                     DangerZoneCard(onReset: {
                         showingResetAlert = true
@@ -68,6 +92,40 @@ public struct TreatmentManagementView: View {
                         set: { if !$0 { cycleToEdit = nil } }
                     )
                 )
+            }
+            .sheet(isPresented: $showingShareSheet) {
+                if let url = exportURL {
+                    BackupActivityView(activityItems: [url])
+                }
+            }
+            .sheet(isPresented: $showingTextBackupSheet) {
+                TextBackupSheet(dataManager: dataManager)
+            }
+            .fileImporter(
+                isPresented: $showingFileImporter,
+                allowedContentTypes: [.json, .data, .item],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    do {
+                        let successMessage = try dataManager.restore(from: url)
+                        importResultMessage = successMessage
+                        showingImportResultAlert = true
+                    } catch {
+                        importResultMessage = "Errore durante il ripristino: \(error.localizedDescription)"
+                        showingImportResultAlert = true
+                    }
+                case .failure(let error):
+                    importResultMessage = "Importazione annullata o non riuscita: \(error.localizedDescription)"
+                    showingImportResultAlert = true
+                }
+            }
+            .alert("Esito Ripristino", isPresented: $showingImportResultAlert) {
+                Button("OK", role: .cancel) {}
+            } message: {
+                Text(importResultMessage)
             }
             .alert("Ripristinare tutti i dati?", isPresented: $showingResetAlert) {
                 Button("Annulla", role: .cancel) {}
@@ -656,5 +714,228 @@ struct EditCycleSheet: View {
         f.locale = Locale(identifier: "it_IT")
         f.dateFormat = "EEE d MMMM yyyy"
         return f.string(from: d)
+    }
+}
+
+// MARK: - Backup & Restore Card
+struct BackupAndRestoreCard: View {
+    @ObservedObject var dataManager: AlignerDataManager
+    let onExportShare: (URL) -> Void
+    let onImportFile: () -> Void
+    let onShowTextBackup: () -> Void
+
+    @State private var isExporting = false
+    @State private var errorMessage = ""
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Image(systemName: "icloud.and.arrow.up.fill")
+                    .font(.system(size: 20))
+                    .foregroundColor(Color.emeraldMint)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Salvataggio & Ripristino Dati")
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.primary)
+
+                    Text("iCloud Drive • File locali • Condivisione")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+
+                Spacer()
+            }
+
+            Text("Salva tutti i tuoi progressi (mascherine, foto, date, cronologia e note) per non perdere mai nulla in caso di aggiornamenti o cambio telefono.")
+                .font(.system(size: 12))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            // Pulsanti Principali
+            HStack(spacing: 10) {
+                // Esporta su iCloud / File
+                Button {
+                    isExporting = true
+                    do {
+                        let fileURL = try dataManager.exportBackupToFile()
+                        isExporting = false
+                        onExportShare(fileURL)
+                    } catch {
+                        isExporting = false
+                        errorMessage = error.localizedDescription
+                    }
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "square.and.arrow.up.fill")
+                            .font(.system(size: 14))
+                        Text("Esporta Dati")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(Color.emeraldMint)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                }
+
+                // Importa da iCloud / File
+                Button {
+                    onImportFile()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "square.and.arrow.down.fill")
+                            .font(.system(size: 14))
+                        Text("Importa Dati")
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(Color(uiColor: .tertiarySystemGroupedBackground))
+                    .foregroundColor(.primary)
+                    .cornerRadius(12)
+                }
+            }
+
+            // Opzione Testuale
+            Button {
+                onShowTextBackup()
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "doc.text.magnifyingglass")
+                        .font(.system(size: 11))
+                    Text("Opzioni avanzate: Backup copia/incolla testo")
+                        .font(.system(size: 11, weight: .medium))
+                    Spacer()
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(.secondary)
+                .padding(.top, 4)
+            }
+
+            if !errorMessage.isEmpty {
+                Text("Errore: \(errorMessage)")
+                    .font(.system(size: 11))
+                    .foregroundColor(.red)
+            }
+        }
+        .padding(18)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
+                .shadow(color: Color.black.opacity(0.04), radius: 6, y: 2)
+        )
+    }
+}
+
+// MARK: - Backup Activity View (Share Sheet)
+struct BackupActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        let controller = UIActivityViewController(
+            activityItems: activityItems,
+            applicationActivities: nil
+        )
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
+}
+
+// MARK: - Text Backup Sheet
+struct TextBackupSheet: View {
+    @ObservedObject var dataManager: AlignerDataManager
+    @Environment(\.dismiss) var dismiss
+    @State private var pastedText: String = ""
+    @State private var showingCopiedNotice = false
+    @State private var statusMessage = ""
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Copia Backup (Testo)") {
+                    Text("Puoi copiare l'intero backup come testo e conservarlo nell'app Note o inviartelo via messaggio.")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+
+                    Button {
+                        if let data = try? dataManager.exportBackupJSONData(),
+                           let str = String(data: data, encoding: .utf8) {
+                            UIPasteboard.general.string = str
+                            showingCopiedNotice = true
+                        }
+                    } label: {
+                        HStack {
+                            Image(systemName: "doc.on.doc.fill")
+                            Text("Copia Tutto negli Appunti")
+                                .bold()
+                        }
+                        .foregroundColor(Color.emeraldMint)
+                    }
+
+                    if showingCopiedNotice {
+                        Text("✅ Backup copiato negli appunti!")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(Color.emeraldMint)
+                    }
+                }
+
+                Section("Ripristina da Testo Incollato") {
+                    Text("Incolla qui il codice di un backup salvato in precedenza:")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+
+                    TextEditor(text: $pastedText)
+                        .frame(height: 120)
+                        .font(.system(size: 11, design: .monospaced))
+
+                    Button {
+                        if let text = UIPasteboard.general.string {
+                            pastedText = text
+                        }
+                    } label: {
+                        Label("Incolla dagli appunti", systemImage: "doc.on.clipboard")
+                            .font(.system(size: 12))
+                    }
+
+                    Button {
+                        guard let data = pastedText.data(using: .utf8) else {
+                            statusMessage = "Testo non valido."
+                            return
+                        }
+                        do {
+                            let msg = try dataManager.restore(from: data)
+                            statusMessage = "✅ " + msg
+                        } catch {
+                            statusMessage = "❌ Errore: \(error.localizedDescription)"
+                        }
+                    } label: {
+                        Text("Ripristina da questo testo")
+                            .bold()
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .background(Color.emeraldMint)
+                            .cornerRadius(10)
+                    }
+                    .disabled(pastedText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+
+                    if !statusMessage.isEmpty {
+                        Text(statusMessage)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(statusMessage.contains("✅") ? Color.emeraldMint : .red)
+                    }
+                }
+            }
+            .navigationTitle("Backup Testuale")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Chiudi") { dismiss() }
+                }
+            }
+        }
     }
 }

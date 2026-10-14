@@ -429,4 +429,142 @@ public class AlignerDataManager: ObservableObject {
         }
         return nil
     }
+
+    // MARK: - Backup & Restore (Cloud & File System)
+
+    public struct BackupPackage: Codable {
+        public var version: Int = 1
+        public var exportDate: Date = Date()
+        public var appVersion: String = "1.0.0"
+        public var dailyTargetWearHours: Double
+        public var totalTreatmentAligners: Int
+        public var notificationDelayMinutes: Int
+        public var specialEventMode: Bool
+        public var specialEventAllowedHours: Double
+        public var isAlignerRemoved: Bool
+        public var currentRemovalStartTime: Date?
+        public var currentCycleId: UUID?
+        public var cycles: [AlignerCycle]
+        public var sessions: [RemovalSession]
+
+        public init(
+            version: Int = 1,
+            exportDate: Date = Date(),
+            appVersion: String = "1.0.0",
+            dailyTargetWearHours: Double,
+            totalTreatmentAligners: Int,
+            notificationDelayMinutes: Int,
+            specialEventMode: Bool,
+            specialEventAllowedHours: Double,
+            isAlignerRemoved: Bool,
+            currentRemovalStartTime: Date?,
+            currentCycleId: UUID?,
+            cycles: [AlignerCycle],
+            sessions: [RemovalSession]
+        ) {
+            self.version = version
+            self.exportDate = exportDate
+            self.appVersion = appVersion
+            self.dailyTargetWearHours = dailyTargetWearHours
+            self.totalTreatmentAligners = totalTreatmentAligners
+            self.notificationDelayMinutes = notificationDelayMinutes
+            self.specialEventMode = specialEventMode
+            self.specialEventAllowedHours = specialEventAllowedHours
+            self.isAlignerRemoved = isAlignerRemoved
+            self.currentRemovalStartTime = currentRemovalStartTime
+            self.currentCycleId = currentCycleId
+            self.cycles = cycles
+            self.sessions = sessions
+        }
+    }
+
+    public func createBackupPackage() -> BackupPackage {
+        BackupPackage(
+            dailyTargetWearHours: dailyTargetWearHours,
+            totalTreatmentAligners: totalTreatmentAligners,
+            notificationDelayMinutes: notificationDelayMinutes,
+            specialEventMode: specialEventMode,
+            specialEventAllowedHours: specialEventAllowedHours,
+            isAlignerRemoved: isAlignerRemoved,
+            currentRemovalStartTime: currentRemovalStartTime,
+            currentCycleId: currentCycleId,
+            cycles: cycles,
+            sessions: sessions
+        )
+    }
+
+    public func exportBackupJSONData() throws -> Data {
+        let package = createBackupPackage()
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        return try encoder.encode(package)
+    }
+
+    public func exportBackupToFile() throws -> URL {
+        let data = try exportBackupJSONData()
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd_HHmm"
+        let dateStr = formatter.string(from: Date())
+        let filename = "AlignerTrack_Backup_\(dateStr).json"
+
+        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+        try data.write(to: tempURL, options: .atomic)
+
+        // Salva anche una copia permanente nella cartella Documenti dell'app (visibile in "File" di iOS)
+        if let docsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+            let localCopy = docsURL.appendingPathComponent("AlignerTrack_LatestBackup.json")
+            try? data.write(to: localCopy, options: .atomic)
+        }
+
+        return tempURL
+    }
+
+    public func restore(from data: Data) throws -> String {
+        var decodedPackage: BackupPackage? = nil
+
+        let isoDecoder = JSONDecoder()
+        isoDecoder.dateDecodingStrategy = .iso8601
+        if let pkg = try? isoDecoder.decode(BackupPackage.self, from: data) {
+            decodedPackage = pkg
+        } else {
+            let standardDecoder = JSONDecoder()
+            if let pkg = try? standardDecoder.decode(BackupPackage.self, from: data) {
+                decodedPackage = pkg
+            }
+        }
+
+        guard let package = decodedPackage else {
+            throw NSError(
+                domain: "AlignerTrack",
+                code: 400,
+                userInfo: [NSLocalizedDescriptionKey: "Formato del file di backup non valido o danneggiato."]
+            )
+        }
+
+        self.sessions = package.sessions
+        self.cycles = package.cycles
+        self.currentCycleId = package.currentCycleId ?? package.cycles.first?.id
+        self.dailyTargetWearHours = package.dailyTargetWearHours > 0 ? package.dailyTargetWearHours : 22.0
+        self.totalTreatmentAligners = package.totalTreatmentAligners > 0 ? package.totalTreatmentAligners : 20
+        self.notificationDelayMinutes = package.notificationDelayMinutes > 0 ? package.notificationDelayMinutes : 45
+        self.specialEventMode = package.specialEventMode
+        self.specialEventAllowedHours = package.specialEventAllowedHours > 0 ? package.specialEventAllowedHours : 4.0
+        self.isAlignerRemoved = package.isAlignerRemoved
+        self.currentRemovalStartTime = package.currentRemovalStartTime
+
+        saveData()
+
+        return "Ripristinati con successo \(package.cycles.count) mascherine e \(package.sessions.count) sessioni!"
+    }
+
+    public func restore(from url: URL) throws -> String {
+        let shouldStop = url.startAccessingSecurityScopedResource()
+        defer {
+            if shouldStop {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        let data = try Data(contentsOf: url)
+        return try restore(from: data)
+    }
 }
