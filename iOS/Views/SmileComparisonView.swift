@@ -5,8 +5,8 @@ import UIKit
 public struct SmileComparisonView: View {
     @ObservedObject var dataManager: AlignerDataManager
     @State private var sliderPosition: CGFloat = 0.5
-    @State private var selectedBeforeCycle: AlignerCycle? = nil
-    @State private var selectedAfterCycle: AlignerCycle? = nil
+    @State private var selectedBeforeId: UUID? = nil
+    @State private var selectedAfterId: UUID? = nil
 
     public init(dataManager: AlignerDataManager) {
         self.dataManager = dataManager
@@ -17,11 +17,17 @@ public struct SmileComparisonView: View {
     }
 
     private var beforeCycle: AlignerCycle? {
-        selectedBeforeCycle ?? cyclesWithPhotos.first
+        if let id = selectedBeforeId, let found = cyclesWithPhotos.first(where: { $0.id == id }) {
+            return found
+        }
+        return cyclesWithPhotos.first
     }
 
     private var afterCycle: AlignerCycle? {
-        selectedAfterCycle ?? cyclesWithPhotos.last
+        if let id = selectedAfterId, let found = cyclesWithPhotos.first(where: { $0.id == id }) {
+            return found
+        }
+        return cyclesWithPhotos.last
     }
 
     private var comparisonImages: (UIImage, UIImage)? {
@@ -54,8 +60,8 @@ public struct SmileComparisonView: View {
                         // MARK: - Selettore Mascherine
                         ComparisonCyclePickerView(
                             cyclesWithPhotos: cyclesWithPhotos,
-                            selectedBeforeCycle: $selectedBeforeCycle,
-                            selectedAfterCycle: $selectedAfterCycle
+                            selectedBeforeId: $selectedBeforeId,
+                            selectedAfterId: $selectedAfterId
                         )
                     } else {
                         // Empty Placeholder
@@ -189,8 +195,8 @@ struct SplitSliderCardView: View {
 // MARK: - Subview 2: Comparison Cycle Picker
 struct ComparisonCyclePickerView: View {
     let cyclesWithPhotos: [AlignerCycle]
-    @Binding var selectedBeforeCycle: AlignerCycle?
-    @Binding var selectedAfterCycle: AlignerCycle?
+    @Binding var selectedBeforeId: UUID?
+    @Binding var selectedAfterId: UUID?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -204,9 +210,9 @@ struct ComparisonCyclePickerView: View {
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.secondary)
 
-                    Picker("Prima", selection: $selectedBeforeCycle) {
+                    Picker("Prima", selection: $selectedBeforeId) {
                         ForEach(cyclesWithPhotos) { c in
-                            Text("Mascherina #\(c.cycleNumber)").tag(Optional(c))
+                            Text("Mascherina #\(c.cycleNumber)").tag(Optional(c.id))
                         }
                     }
                     .pickerStyle(.menu)
@@ -223,9 +229,9 @@ struct ComparisonCyclePickerView: View {
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(.secondary)
 
-                    Picker("Dopo", selection: $selectedAfterCycle) {
+                    Picker("Dopo", selection: $selectedAfterId) {
                         ForEach(cyclesWithPhotos) { c in
-                            Text("Mascherina #\(c.cycleNumber)").tag(Optional(c))
+                            Text("Mascherina #\(c.cycleNumber)").tag(Optional(c.id))
                         }
                     }
                     .pickerStyle(.menu)

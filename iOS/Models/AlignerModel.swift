@@ -50,7 +50,7 @@ public struct RemovalSession: Identifiable, Codable, Equatable {
     }
 }
 
-public struct AlignerCycle: Identifiable, Codable, Equatable {
+public struct AlignerCycle: Identifiable, Codable, Equatable, Hashable {
     public var id: UUID
     public var cycleNumber: Int
     public var startDate: Date
