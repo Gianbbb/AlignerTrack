@@ -18,11 +18,15 @@ targets:
       - path: iOS/Views
     info:
       path: iOS/Info.plist
+      properties:
+        UILaunchScreen: {}
     entitlements:
       path: iOS/AlignerTrack.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alignertrack.app
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: iOS/Info.plist
         SWIFT_VERSION: "5.9"
         CODE_SIGN_STYLE: Manual
         CODE_SIGNING_ALLOWED: NO

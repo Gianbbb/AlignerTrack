@@ -46,6 +46,10 @@ jobs:
           mkdir -p build/Payload
           rm -rf build/Payload/*
           cp -r build/Build/Products/Release-iphoneos/AlignerTrack.app build/Payload/
+          APP_PLIST="build/Payload/AlignerTrack.app/Info.plist"
+          if [ -f "$APP_PLIST" ]; then
+            /usr/libexec/PlistBuddy -c "Add :UILaunchScreen dict" "$APP_PLIST" || true
+          fi
           WIDGET_PLIST="build/Payload/AlignerTrack.app/PlugIns/AlignerWidgetExtension.appex/Info.plist"
           if [ -f "$WIDGET_PLIST" ]; then
             /usr/libexec/PlistBuddy -c "Add :NSExtension dict" "$WIDGET_PLIST" || true
