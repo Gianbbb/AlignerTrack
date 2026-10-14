@@ -32,6 +32,7 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
     dependencies:
       - target: AlignerWidgetExtension
+        embed: true
 
   AlignerWidgetExtension:
     type: app-extension
@@ -42,11 +43,16 @@ targets:
       - path: iOS/Widget
     info:
       path: iOS/WidgetInfo.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
       path: iOS/AlignerWidget.entitlements
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.alignertrack.app.widget
+        GENERATE_INFOPLIST_FILE: NO
+        INFOPLIST_FILE: iOS/WidgetInfo.plist
         SWIFT_VERSION: "5.9"
         CODE_SIGN_STYLE: Manual
         CODE_SIGNING_ALLOWED: NO

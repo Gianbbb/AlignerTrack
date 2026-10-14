@@ -46,6 +46,11 @@ jobs:
           mkdir -p build/Payload
           rm -rf build/Payload/*
           cp -r build/Build/Products/Release-iphoneos/AlignerTrack.app build/Payload/
+          WIDGET_PLIST="build/Payload/AlignerTrack.app/PlugIns/AlignerWidgetExtension.appex/Info.plist"
+          if [ -f "$WIDGET_PLIST" ]; then
+            /usr/libexec/PlistBuddy -c "Add :NSExtension dict" "$WIDGET_PLIST" || true
+            /usr/libexec/PlistBuddy -c "Add :NSExtension:NSExtensionPointIdentifier string com.apple.widgetkit-extension" "$WIDGET_PLIST" || true
+          fi
           cd build && zip -r -9 AlignerTrack.ipa Payload
 
       - name: Carica file .IPA negli Artifacts di GitHub
