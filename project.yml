@@ -22,6 +22,10 @@ targets:
         UILaunchScreen: {}
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.alignertrack.app
+            CFBundleURLSchemes:
+              - alignertrack
     entitlements:
       path: iOS/AlignerTrack.entitlements
     settings:
