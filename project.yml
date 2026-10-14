@@ -20,6 +20,8 @@ targets:
       path: iOS/Info.plist
       properties:
         UILaunchScreen: {}
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
     entitlements:
       path: iOS/AlignerTrack.entitlements
     settings:
